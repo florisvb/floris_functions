@@ -1,7 +1,11 @@
 # General plotting functions used in making Dickinsonian figures
 # written by Floris van Breugel, with some help from Andrew Straw and Will Dickson
 
+
 # general imports
+import matplotlib
+print matplotlib.__version__ # recommended to use version >1.0 (for spines)
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import patches
@@ -18,6 +22,8 @@ import matplotlib.colorbar
 
 # used in scatter
 from matplotlib.collections import PatchCollection
+
+
 
 # not used
 #import scipy.optimize
@@ -96,9 +102,16 @@ rcParams.update(params)
 
 # NOTE: smart_bounds is disabled (commented out) in this function. It only works in matplotlib v >1.
 # to fix this issue, try manually setting your tick marks (see example below) 
-def adjust_spines(ax,spines, color={}, spine_locations={}, smart_bounds=False):
+def adjust_spines(ax,spines, spine_locations={}, smart_bounds=False, xticks=None, yticks=None):
     if type(spines) is not list:
         spines = [spines]
+        
+    # get ticks
+    if xticks is None:
+        xticks = ax.get_xticks()
+    if yticks is None:
+        yticks = ax.get_yticks()
+        
     spine_locations_dict = {'top': 10, 'right': 10, 'left': 10, 'bottom': 10}
     for key in spine_locations.keys():
         spine_locations_dict[key] = spine_locations[key]
@@ -113,18 +126,18 @@ def adjust_spines(ax,spines, color={}, spine_locations={}, smart_bounds=False):
     for loc, spine in ax.spines.iteritems():
         if loc in spines:
             spine.set_position(('outward',spine_locations_dict[loc])) # outward by x points
-            
-            if loc in color.keys():
-                c = color[loc]
-            else:
-                c = 'black'
-            
-            spine.set_color(c)
-            #spine.set_smart_bounds(smart_bounds)
-            if loc == 'bottom' and smart_bounds:
-                pass#spine.set_smart_bounds(True)
+            spine.set_color('black')
         else:
             spine.set_color('none') # don't draw spine
+            
+    # smart bounds, if possible
+    if int(matplotlib.__version__[0]) > 0 and smart_bounds: 
+        for loc, spine in ax.spines.items():
+            if loc in ['left', 'right']:
+                ticks = yticks
+            if loc in ['top', 'bottom']:
+                ticks = xticks
+            spine.set_bounds(ticks[0], ticks[-1])
 
     # turn off ticks where there is no spine
     if 'left' in spines:
@@ -137,13 +150,20 @@ def adjust_spines(ax,spines, color={}, spine_locations={}, smart_bounds=False):
 
     if 'bottom' in spines:
         ax.xaxis.set_ticks_position('bottom')
+    if 'top' in spines:
+        ax.xaxis.set_ticks_position('top')
     else:
         # no xaxis ticks
         ax.xaxis.set_ticks([])    
-        
+    
+    ax.set_xticks(xticks)
+    ax.set_yticks(yticks)
+                
     for line in ax.get_xticklines() + ax.get_yticklines():
         #line.set_markersize(6)
         line.set_markeredgewidth(1)
+                
+                
         
 def adjust_spines_example():
     
@@ -166,24 +186,17 @@ def adjust_spines_example_with_custom_ticks():
     ax = fig.add_subplot(111)
     ax.plot(x,y)
     
-    # NOTE: adjust_spines comes before setting limits and custom ticks!
-    adjust_spines(ax, ['left', 'bottom'])
-    
     # set limits
     ax.set_xlim(0,100)
     ax.set_ylim(0,20000)
     
     # set custom ticks and tick labels
     xticks = [0, 10, 25, 50, 71, 100] # custom ticks, should be a list
-    xticklabels = [str(tick) for tick in xticks]
-    # alternatively: xticklabels = ['1st', '2nd', '3rd', '4th', '5th', '6th'], for example
-    
-    ax.set_xticks(xticks)
-    ax.set_xticklabels(xticklabels) 
+    adjust_spines(ax, ['left', 'bottom'], xticks=xticks, smart_bounds=True)
     
     ax.set_xlabel('x axis, custom ticks\ncoooool!')
     
-    fig.savefig('adjust_spines_example.pdf', format='pdf')
+    fig.savefig('adjust_spines_custom_ticks_example.pdf', format='pdf')
 
 
 
