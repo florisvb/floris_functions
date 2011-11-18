@@ -435,11 +435,12 @@ def histogram_example():
 # Boxplots
 ###################################################################################################
     
-def boxplot(ax, x_data, y_data_list, nbins=50, colormap='YlOrRd', colorlinewidth=2, boxwidth=1, boxlinecolor='black', classic_linecolor='gray', usebins=None, boxlinewidth=0.5, outlier_limit=0.01, norm=None, use_distribution_for_linewidth=False, show_outliers=True):    
+def boxplot(ax, x_data, y_data_list, nbins=50, colormap='YlOrRd', colorlinewidth=2, boxwidth=1, boxlinecolor='black', classic_linecolor='gray', usebins=None, boxlinewidth=0.5, outlier_limit=0.01, norm=None, use_distribution_for_linewidth=False, show_outliers=True, show_whiskers=True):    
     # if colormap is None: show a line instead of the 1D histogram (ie. a normal boxplot)
     # use_distribution_for_linewidth will adjust the linewidth according to the histogram of the distribution
     # classic_linecolor: sets the color of the vertical line that shows the extent of the data, if colormap=None
     # outlier limit: decimal % of top and bottom data that is defined as outliers (0.01 = top 1% and bottom 1% are defined as outliers)
+    # show_whiskers: toggle the whiskers, if colormap is None
 
     if usebins is None: 
         usebins = nbins
@@ -447,7 +448,7 @@ def boxplot(ax, x_data, y_data_list, nbins=50, colormap='YlOrRd', colorlinewidth
 
     for i, y_data in enumerate(y_data_list):
         #print len(y_data)
-    
+
         # calc boxplot statistics
         median = np.median(y_data)
         ind = np.where(y_data<=median)[0].tolist()
@@ -465,6 +466,7 @@ def boxplot(ax, x_data, y_data_list, nbins=50, colormap='YlOrRd', colorlinewidth
         y_data_inrange = y_data[indices_inrange]
         y_data_outliers = y_data[outliers]
         x = x_data[i]
+        
     
         # plot colorline
         if colormap is not None:
@@ -478,7 +480,7 @@ def boxplot(ax, x_data, y_data_list, nbins=50, colormap='YlOrRd', colorlinewidth
                 
             colorline(ax, x_arr, bins, hist, colormap=colormap, norm=norm, linewidth=colorlinewidth) # the norm defaults make it so that at each x-coordinate the colormap/linewidth will be scaled to show the full color range. If you want to control the color range for all x-coordinate distributions so that they are the same, set the norm limits when calling boxplot(). 
             
-        else:
+        elif show_whiskers:
             ax.vlines(x, last_quartile, np.max(y_data_inrange), color=classic_linecolor, linestyle=('-'), linewidth=boxlinewidth/2.)
             ax.vlines(x, np.min(y_data_inrange), first_quartile, color=classic_linecolor, linestyle=('-'), linewidth=boxlinewidth/2.)
             ax.hlines([np.min(y_data_inrange), np.max(y_data_inrange)], x-boxwidth/4., x+boxwidth/4., color=classic_linecolor, linewidth=boxlinewidth/2.)
