@@ -1,56 +1,16 @@
 # General plotting functions used in making Dickinsonian figures
 # written by Floris van Breugel, with some help from Andrew Straw and Will Dickson
 
-
 # general imports
 import matplotlib
 print matplotlib.__version__ # recommended to use version >1.0 (for spines)
-
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import patches
-
-# used for colorline
-from matplotlib.collections import LineCollection
-
-# used in histogram
-from scipy.stats import norm as gaussian_distribution
-from scipy import signal
-
-# used in colorbar
-import matplotlib.colorbar
-
-# used in scatter
-from matplotlib.collections import PatchCollection
-
-
-
-# not used
-#import scipy.optimize
-#import scipy.stats.distributions as distributions
-
-###################################################################################################
-# Misc Info
-###################################################################################################
-
-# FUNCTIONS contained in this file: 
-# adjust_spines
-# colorline
-# histogram
-# histogram2d (heatmap)
-# boxplot
-# colorbar (scale for colormap stuff), intended for just generating a colorbar for use in illustrator figure assembly
-
-
-# useful links:
-# colormaps: http://www.scipy.org/Cookbook/Matplotlib/Show_colormaps
-
 
 ###################################################################################################
 # Floris' parameters for saving figures. 
 # NOTE: this could mess up your default matplotlib setup, but it allows for saving to pdf
 ###################################################################################################
 
+# this needs to happen before importing pyplot
 from matplotlib import rcParams
 fig_width = 3.25 # width in inches
 fig_height = 3.25  # height in inches
@@ -97,12 +57,56 @@ params = {'backend': 'Agg',
 rcParams.update(params) 
 
 ###################################################################################################
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import patches
+
+# used for colorline
+from matplotlib.collections import LineCollection
+
+# used in histogram
+from scipy.stats import norm as gaussian_distribution
+from scipy import signal
+
+# used in colorbar
+import matplotlib.colorbar
+
+# used in scatter
+from matplotlib.collections import PatchCollection
+
+
+
+# not used
+#import scipy.optimize
+#import scipy.stats.distributions as distributions
+
+###################################################################################################
+# Misc Info
+###################################################################################################
+
+# FUNCTIONS contained in this file: 
+# adjust_spines
+# colorline
+# histogram
+# histogram2d (heatmap)
+# boxplot
+# colorbar (scale for colormap stuff), intended for just generating a colorbar for use in illustrator figure assembly
+
+
+# useful links:
+# colormaps: http://www.scipy.org/Cookbook/Matplotlib/Show_colormaps
+
+
+
+
+###################################################################################################
 # Adjust Spines (Dickinson style, thanks to Andrew Straw)
 ###################################################################################################
 
 # NOTE: smart_bounds is disabled (commented out) in this function. It only works in matplotlib v >1.
 # to fix this issue, try manually setting your tick marks (see example below) 
-def adjust_spines(ax,spines, spine_locations={}, smart_bounds=False, xticks=None, yticks=None):
+def adjust_spines(ax,spines, spine_locations={}, smart_bounds=True, xticks=None, yticks=None):
     if type(spines) is not list:
         spines = [spines]
         
@@ -281,11 +285,15 @@ def colorline_example():
     
 # first some helper functions
 def custom_hist_rectangles(hist, leftedges, width, facecolor='green', edgecolor='none', alpha=1):
+    linewidth = 1
+    if edgecolor == 'none':
+        linewidth = 0 # hack needed to remove edges in matplotlib.version 1.0+
+
     if type(width) is not list:
         width = [width for i in range(len(hist))]
     rects = [None for i in range(len(hist))]
     for i in range(len(hist)):
-        rects[i] = patches.Rectangle( [leftedges[i], 0], width[i], hist[i], facecolor=facecolor, edgecolor=edgecolor, alpha=alpha)
+        rects[i] = patches.Rectangle( [leftedges[i], 0], width[i], hist[i], facecolor=facecolor, edgecolor=edgecolor, alpha=alpha, linewidth=0)
     return rects
 
 def bootstrap_histogram(xdata, bins, normed=False, n=None, return_raw=False):
@@ -354,7 +362,7 @@ def histogram(ax, data_list, bins=10, bin_width_ratio=0.6, colors='green', edgec
             data_hist = np.histogram(data, bins=bins, normed=normed)[0].astype(float)
             
         if exponential_histogram:
-            data_hist = np.log(data_hist)
+            data_hist = np.log(data_hist+1)
         
         if normed_occurences is not False:
             if normed_occurences == 'total':
@@ -426,6 +434,8 @@ def histogram_example():
     ax = fig.add_subplot(111)
     
     histogram(ax, y_data_list, bins=bins, bin_width_ratio=0.8, colors=['green', 'black', 'orange'], edgecolor='none', bar_alpha=1, curve_fill_alpha=0.4, curve_line_alpha=0, curve_butter_filter=[3,0.3], return_vals=False, show_smoothed=True, normed=True, normed_occurences=False, bootstrap_std=False, exponential_histogram=False)
+    
+    
     
     adjust_spines(ax, ['left', 'bottom'])
     
