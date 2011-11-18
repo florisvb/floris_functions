@@ -623,7 +623,7 @@ def colorbar_example():
     colorbar(filename='colorbar_example.pdf')
     
 ###################################################################################################
-# Scatter Plot (with EllipseCollection) : more control, than plotting with 'dotted' style
+# Scatter Plot (with PatchCollections of circles) : more control than plotting with 'dotted' style with "plot"
 ###################################################################################################
 
 def scatter(ax, x, y, color='black', colormap='jet', radius=0.01, colornorm=None, alpha=1, radiusnorm=None, maxradius=1, minradius=0): 
