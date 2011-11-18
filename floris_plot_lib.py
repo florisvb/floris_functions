@@ -422,7 +422,11 @@ def histogram_example():
 # Boxplots
 ###################################################################################################
     
-def boxplot(ax, x_data, y_data_list, nbins=50, colormap='YlOrRd', colorlinewidth=2, boxwidth=1, usebins=None, boxlinewidth=0.5, outlier_limit=0.01, norm=None, use_distribution_for_linewidth=False):    
+def boxplot(ax, x_data, y_data_list, nbins=50, colormap='YlOrRd', colorlinewidth=2, boxwidth=1, boxlinecolor='black', classic_linecolor='gray', usebins=None, boxlinewidth=0.5, outlier_limit=0.01, norm=None, use_distribution_for_linewidth=False, show_outliers=True):    
+    # if colormap is None: show a line instead of the 1D histogram (ie. a normal boxplot)
+    # use_distribution_for_linewidth will adjust the linewidth according to the histogram of the distribution
+    # classic_linecolor: sets the color of the vertical line that shows the extent of the data, if colormap=None
+    # outlier limit: decimal % of top and bottom data that is defined as outliers (0.01 = top 1% and bottom 1% are defined as outliers)
 
     if usebins is None: 
         usebins = nbins
@@ -447,33 +451,41 @@ def boxplot(ax, x_data, y_data_list, nbins=50, colormap='YlOrRd', colorlinewidth
         outliers = ind_sorted[0:bottom_limit].tolist() + ind_sorted[top_limit:len(ind_sorted)-1].tolist()
         y_data_inrange = y_data[indices_inrange]
         y_data_outliers = y_data[outliers]
-    
+        x = x_data[i]
     
         # plot colorline
-        x = x_data[i]
-        hist, bins = np.histogram(y_data_inrange, usebins, normed=False)
-        hist = hist.astype(float)
-        hist /= np.max(hist)
-        x_arr = np.ones_like(bins)*x
-        
-        if use_distribution_for_linewidth:
-            colorlinewidth = hist*colorlinewidth
-        
-        colorline(ax, x_arr, bins, hist, colormap=colormap, norm=norm, linewidth=colorlinewidth) # the norm defaults make it so that at each x-coordinate the colormap/linewidth will be scaled to show the full color range. If you want to control the color range for all x-coordinate distributions so that they are the same, set the norm limits when calling boxplot(). 
+        if colormap is not None:
+            hist, bins = np.histogram(y_data_inrange, usebins, normed=False)
+            hist = hist.astype(float)
+            hist /= np.max(hist)
+            x_arr = np.ones_like(bins)*x
+            
+            if use_distribution_for_linewidth:
+                colorlinewidth = hist*colorlinewidth
+                
+            colorline(ax, x_arr, bins, hist, colormap=colormap, norm=norm, linewidth=colorlinewidth) # the norm defaults make it so that at each x-coordinate the colormap/linewidth will be scaled to show the full color range. If you want to control the color range for all x-coordinate distributions so that they are the same, set the norm limits when calling boxplot(). 
+            
+        else:
+            ax.vlines(x, last_quartile, np.max(y_data_inrange), color=classic_linecolor, linestyle=('-'), linewidth=boxlinewidth/2.)
+            ax.vlines(x, np.min(y_data_inrange), first_quartile, color=classic_linecolor, linestyle=('-'), linewidth=boxlinewidth/2.)
+            ax.hlines([np.min(y_data_inrange), np.max(y_data_inrange)], x-boxwidth/4., x+boxwidth/4., color=classic_linecolor, linewidth=boxlinewidth/2.)
+            
         
         
         # plot boxplot
-        ax.hlines(median, x-boxwidth/2., x+boxwidth/2., color='black', linewidth=boxlinewidth)
-        ax.hlines([first_quartile, last_quartile], x-boxwidth/2., x+boxwidth/2., color='black', linewidth=boxlinewidth/2.)
-        ax.vlines([x-boxwidth/2., x+boxwidth/2.], first_quartile, last_quartile, color='black', linewidth=boxlinewidth/2.)
+        ax.hlines(median, x-boxwidth/2., x+boxwidth/2., color=boxlinecolor, linewidth=boxlinewidth)
+        ax.hlines([first_quartile, last_quartile], x-boxwidth/2., x+boxwidth/2., color=boxlinecolor, linewidth=boxlinewidth/2.)
+        ax.vlines([x-boxwidth/2., x+boxwidth/2.], first_quartile, last_quartile, color=boxlinecolor, linewidth=boxlinewidth/2.)
         
         # plot outliers
-        if outlier_limit > 0:
-            x_arr_outliers = x*np.ones_like(y_data_outliers)
-            ax.plot(x_arr_outliers, y_data_outliers, '.', markerfacecolor='gray', markeredgecolor='none', markersize=1)
+        if show_outliers:
+            if outlier_limit > 0:
+                x_arr_outliers = x*np.ones_like(y_data_outliers)
+                ax.plot(x_arr_outliers, y_data_outliers, '.', markerfacecolor='gray', markeredgecolor='none', markersize=1)
         
     
 def boxplot_example():
+    # box plot with colorline as histogram
 
     # generate a list of various y data, from three random gaussian distributions
     x_data = np.linspace(0,20,5)
@@ -495,7 +507,31 @@ def boxplot_example():
     ax.set_ylabel('y axis')
     
     fig.savefig('boxplot_example.pdf', format='pdf')    
+    
+def boxplot_classic_example():
+    # classic boxplot look (no colorlines)
         
+    # generate a list of various y data, from three random gaussian distributions
+    x_data = np.linspace(0,20,5)
+    y_data_list = []
+    for i in range(len(x_data)):
+        mean = np.random.random()*10
+        std = 3
+        ndatapoints = 500
+        y_data = gaussian_distribution.rvs(loc=mean, scale=std, size=ndatapoints)
+        y_data_list.append(y_data)
+        
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    
+    boxplot(ax, x_data, y_data_list, colormap=None, boxwidth=1, boxlinewidth=0.5, outlier_limit=0.01, show_outliers=True)
+    adjust_spines(ax, ['left', 'bottom'])
+    
+    ax.set_xlabel('x axis')
+    ax.set_ylabel('y axis')
+    
+    fig.savefig('boxplot_classic_example.pdf', format='pdf')    
+    
     
     
 ###################################################################################################
@@ -628,6 +664,7 @@ def colorbar_example():
 
 def scatter(ax, x, y, color='black', colormap='jet', radius=0.01, colornorm=None, alpha=1, radiusnorm=None, maxradius=1, minradius=0): 
     # color can be array-like, or a matplotlib color 
+    # I can't figure out how to control alpha through the individual circle patches.. it seems to get overwritten by the collection. low priority!
 
     cmap = plt.get_cmap(colormap)
     if colornorm is not None:
@@ -651,7 +688,7 @@ def scatter(ax, x, y, color='black', colormap='jet', radius=0.01, colornorm=None
         circles[i] = patches.Circle( pt, radius=r )
 
     # make a collection of those circles    
-    cc = PatchCollection(circles, match_original=True, cmap=cmap, norm=colornorm)
+    cc = PatchCollection(circles, cmap=cmap, norm=colornorm) # potentially useful option: match_original=True
     
     # set properties for collection
     cc.set_edgecolors('none')
@@ -694,6 +731,7 @@ def run_examples():
     colorline_example()
     histogram_example()
     boxplot_example()
+    boxplot_classic_example()
     histogram2d_example()
     colorbar_example()
     scatter_example()
