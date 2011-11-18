@@ -16,6 +16,9 @@ from scipy import signal
 # used in colorbar
 import matplotlib.colorbar
 
+# used in scatter
+from matplotlib.collections import PatchCollection
+
 # not used
 #import scipy.optimize
 #import scipy.stats.distributions as distributions
@@ -192,7 +195,7 @@ def adjust_spines_example_with_custom_ticks():
 def colorline(ax, x,y,z,linewidth=1, colormap='jet', norm=None, zorder=1, alpha=1, linestyle='solid'):
         cmap = plt.get_cmap(colormap)
         
-        if type(linewidth) is list or np.array:
+        if type(linewidth) is list or type(linewidth) is np.array or type(linewidth) is np.ndarray:
             linewidths = linewidth
         else:
             linewidths = np.ones_like(z)*linewidth
@@ -618,9 +621,86 @@ def colorbar(ax=None, ticks=None, colormap='jet', aspect=20, orientation='vertic
     
 def colorbar_example():
     colorbar(filename='colorbar_example.pdf')
-
-
-
-
     
+###################################################################################################
+# Scatter Plot (with EllipseCollection) : more control, than plotting with 'dotted' style
+###################################################################################################
+
+def scatter(ax, x, y, color='black', colormap='jet', radius=0.01, colornorm=None, alpha=1, radiusnorm=None, maxradius=1, minradius=0): 
+    # color can be array-like, or a matplotlib color 
+
+    cmap = plt.get_cmap(colormap)
+    if colornorm is not None:
+        colornorm = plt.Normalize(colornorm)
+    
+    # setup normalizing for radius scale factor (if used)
+    if type(radius) is list or type(radius) is np.array or type(radius) is np.ndarray:
+        if radiusnorm is None:
+            radiusnorm = matplotlib.colors.Normalize(np.min(radius), np.max(radius), clip=True)
+        else:
+            radiusnorm = matplotlib.colors.Normalize(radiusnorm[0], radiusnorm[1], clip=True)
+
+    # make circles
+    points = np.array([x, y]).T
+    circles = [None for i in range(len(x))]
+    for i, pt in enumerate(points):    
+        if type(radius) is list or type(radius) is np.array or type(radius) is np.ndarray:
+            r = radiusnorm(radius[i])*(maxradius-minradius) + minradius
+        else:
+            r = radius
+        circles[i] = patches.Circle( pt, radius=r )
+
+    # make a collection of those circles    
+    cc = PatchCollection(circles, match_original=True, cmap=cmap, norm=colornorm)
+    
+    # set properties for collection
+    cc.set_edgecolors('none')
+    if type(color) is list or type(color) is np.array or type(color) is np.ndarray:
+        cc.set_array(color)
+    else:
+        cc.set_facecolors(color)
+    cc.set_alpha(alpha)
+
+    # add collection to axis    
+    ax.add_collection(cc)  
+    
+    
+def scatter_example():
+    
+    x = np.random.random(100)
+    y = np.random.random(100)
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    
+    # show a few different scatter examples
+    scatter(ax, x, y, color=x) # with color scale
+    scatter(ax, x+1, y+1, color='black') # set fixed color
+    scatter(ax, x+1, y, color='blue', radius=0.05, alpha=0.2) # set some parameters for all circles 
+    scatter(ax, x, y+1, color='green', radius=x, alpha=0.6, radiusnorm=(0.2, 0.8), minradius=0.01, maxradius=0.05) # let radius vary with some array 
+    
+    ax.set_xlim(0,2)
+    ax.set_ylim(0,2)
+    ax.set_aspect('equal')
+    adjust_spines(ax, ['left', 'bottom'])
+    fig.savefig('scatter_example.pdf', format='pdf')
+    
+    
+###################################################################################################
+# Run examples: lets you see all the example plots!
+###################################################################################################
+def run_examples():
+    adjust_spines_example_with_custom_ticks()
+    colorline_example()
+    histogram_example()
+    boxplot_example()
+    histogram2d_example()
+    colorbar_example()
+    scatter_example()
+
+if __name__ == '__main__':
+    run_examples()
+
+
+
     
