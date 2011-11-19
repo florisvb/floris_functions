@@ -293,7 +293,7 @@ def custom_hist_rectangles(hist, leftedges, width, facecolor='green', edgecolor=
         width = [width for i in range(len(hist))]
     rects = [None for i in range(len(hist))]
     for i in range(len(hist)):
-        rects[i] = patches.Rectangle( [leftedges[i], 0], width[i], hist[i], facecolor=facecolor, edgecolor=edgecolor, alpha=alpha, linewidth=0)
+        rects[i] = patches.Rectangle( [leftedges[i], 0], width[i], hist[i], facecolor=facecolor, edgecolor=edgecolor, alpha=alpha, linewidth=linewidth)
     return rects
 
 def bootstrap_histogram(xdata, bins, normed=False, n=None, return_raw=False):
@@ -320,8 +320,8 @@ def bootstrap_histogram(xdata, bins, normed=False, n=None, return_raw=False):
         return hist_mean, hist_std
         
     
-def histogram(ax, data_list, bins=10, bin_width_ratio=0.6, colors='green', edgecolor='none', bar_alpha=0.7, curve_fill_alpha=0.4, curve_line_alpha=0.8, curve_butter_filter=[3,0.3], return_vals=False, show_smoothed=True, normed=False, normed_occurences=False, bootstrap_std=False, bootsrap_line_width=0.5, exponential_histogram=False):
-    
+def histogram(ax, data_list, bins=10, bin_width_ratio=0.6, colors='green', edgecolor='none', bar_alpha=0.7, curve_fill_alpha=0.4, curve_line_alpha=0.8, curve_butter_filter=[3,0.3], return_vals=False, show_smoothed=True, normed=False, normed_occurences=False, bootstrap_std=False, bootsrap_line_width=0.5, exponential_histogram=False, smoothing_range=None):
+    # smoothing_range: tuple or list or sequence, eg. (1,100). Use if you only want to smooth and show smoothing over a specific range
     n_bars = float(len(data_list))
     if type(bins) is int:
     
@@ -392,10 +392,16 @@ def histogram(ax, data_list, bins=10, bin_width_ratio=0.6, colors='green', edgec
         
                 
         if show_smoothed:
-            data_hist_filtered = signal.filtfilt(butter_b, butter_a, data_hist)
-            interped_bin_centers = np.linspace(bin_centers[0]-bin_width/2., bin_centers[-1]+bin_width/2., 100, endpoint=True)
+            if smoothing_range is not None: # in case you only want to smooth and show smoothing over a select range.
+                indices_in_smoothing_range = np.where( (bin_centers>smoothing_range[0])*(bin_centers<smoothing_range[-1]) )[0].tolist()
+            else:
+                indices_in_smoothing_range = [bc for bc in range(len(bin_centers))]
+                
+            data_hist_filtered = signal.filtfilt(butter_b, butter_a, data_hist[indices_in_smoothing_range])
+            interped_bin_centers = np.linspace(bin_centers[indices_in_smoothing_range[0]]-bin_width/2., bin_centers[indices_in_smoothing_range[-1]]+bin_width/2., 100, endpoint=True)
             v = 100 / float(len(bin_centers))
-            interped_data_hist_filtered = np.interp(interped_bin_centers, bin_centers, data_hist_filtered)
+            
+            interped_data_hist_filtered = np.interp(interped_bin_centers, bin_centers[indices_in_smoothing_range], data_hist_filtered)
             interped_data_hist_filtered2 = signal.filtfilt(butter_b/v, butter_a/v, interped_data_hist_filtered)
             #ax.plot(bin_centers, data_hist_filtered, color=facecolor[i])
             if curve_fill_alpha > 0:
