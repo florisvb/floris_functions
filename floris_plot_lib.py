@@ -5,9 +5,13 @@
 import matplotlib
 print matplotlib.__version__ # recommended to use version >1.0 (for spines)
 
+# recommend using version 1.0.1, not 1.1, and not 0.99.
+
 ###################################################################################################
 # Floris' parameters for saving figures. 
-# NOTE: this could mess up your default matplotlib setup, but it allows for saving to pdf
+# NOTE: this could mess up your default matplotlib setup, but it allows for saving to pdf. This currently only works with v1.0.1
+# You must import this file before importing matplotlib.pyplot
+# see readme
 ###################################################################################################
 
 # this needs to happen before importing pyplot
