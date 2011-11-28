@@ -6,6 +6,8 @@ import matplotlib
 print matplotlib.__version__ # recommended to use version >1.0 (for spines)
 
 # recommend using version 1.0.1, not 1.1, and not 0.99.
+# spines don't work in 0.99
+# saving as pdfs has errors in 1.1
 
 ###################################################################################################
 # Floris' parameters for saving figures. 
