@@ -1,0 +1,15 @@
+Some basic instructions:
+
+
+To get the rcparams in floris_plot_lib to work properly you need to do the following:
+
+1. install matplotlib 1.0+
+    If, for some reason, you need v0.99, then you can still install v1.0+ in a virtual environment, and then do something like:
+        import sys
+        sys.path.insert(0, '/home/floris/MPL1/lib/python2.6/site-packages/')
+        
+2. install latex:
+    sudo apt-get install texlive
+    sudo apt-get install texlive-latex-extras
+    sudo apt-get install ghostscript
+    
