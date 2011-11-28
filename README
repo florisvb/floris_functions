@@ -13,3 +13,5 @@ To get the rcparams in floris_plot_lib to work properly you need to do the follo
     sudo apt-get install texlive-latex-extras
     sudo apt-get install ghostscript
     
+    
+if you encounter errors or trouble, please let me know.
