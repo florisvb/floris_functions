@@ -1,4 +1,3 @@
-# General plotting functions used in making Dickinsonian figures
 # written by Floris van Breugel, with some help from Andrew Straw and Will Dickson
 
 # general imports
@@ -699,7 +698,7 @@ def scatter(ax, x, y, color='black', colormap='jet', radius=0.01, colornorm=None
 
     cmap = plt.get_cmap(colormap)
     if colornorm is not None:
-        colornorm = plt.Normalize(colornorm)
+        colornorm = plt.Normalize(colornorm[0], colornorm[1], clip=True)
     
     # setup normalizing for radius scale factor (if used)
     if type(radius) is list or type(radius) is np.array or type(radius) is np.ndarray:
@@ -742,7 +741,7 @@ def scatter_example():
     ax = fig.add_subplot(111)
     
     # show a few different scatter examples
-    scatter(ax, x, y, color=x) # with color scale
+    scatter(ax, x, y, color=x*10) # with color scale
     scatter(ax, x+1, y+1, color='black') # set fixed color
     scatter(ax, x+1, y, color='blue', radius=0.05, alpha=0.2) # set some parameters for all circles 
     scatter(ax, x, y+1, color='green', radius=x, alpha=0.6, radiusnorm=(0.2, 0.8), minradius=0.01, maxradius=0.05) # let radius vary with some array 
