@@ -438,7 +438,7 @@ def histogram_example():
         y_data = gaussian_distribution.rvs(loc=mean, scale=std, size=ndatapoints)
         y_data_list.append(y_data)
         
-    nbins = 40
+    nbins = 40 # note: if show_smoothed=True with default butter filter, nbins needs to be > ~15 
     bins = np.linspace(-10,30,nbins)
     
     fig = plt.figure()
