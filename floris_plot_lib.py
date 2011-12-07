@@ -148,6 +148,9 @@ def adjust_spines(ax,spines, spine_locations={}, smart_bounds=True, xticks=None,
                 ticks = xticks
             spine.set_bounds(ticks[0], ticks[-1])
 
+    ax.set_xticks(xticks)
+    ax.set_yticks(yticks)
+
     # turn off ticks where there is no spine
     if 'left' in spines:
         ax.yaxis.set_ticks_position('left')
@@ -165,9 +168,6 @@ def adjust_spines(ax,spines, spine_locations={}, smart_bounds=True, xticks=None,
         # no xaxis ticks
         ax.xaxis.set_ticks([])    
     
-    ax.set_xticks(xticks)
-    ax.set_yticks(yticks)
-                
     for line in ax.get_xticklines() + ax.get_yticklines():
         #line.set_markersize(6)
         line.set_markeredgewidth(1)
@@ -325,7 +325,7 @@ def bootstrap_histogram(xdata, bins, normed=False, n=None, return_raw=False):
         return hist_mean, hist_std
         
     
-def histogram(ax, data_list, bins=10, bin_width_ratio=0.6, colors='green', edgecolor='none', bar_alpha=0.7, curve_fill_alpha=0.4, curve_line_alpha=0.8, curve_butter_filter=[3,0.3], return_vals=False, show_smoothed=True, normed=False, normed_occurences=False, bootstrap_std=False, bootsrap_line_width=0.5, exponential_histogram=False, smoothing_range=None):
+def histogram(ax, data_list, bins=10, bin_width_ratio=0.6, colors='green', edgecolor='none', bar_alpha=0.7, curve_fill_alpha=0.4, curve_line_alpha=0.8, curve_butter_filter=[3,0.3], return_vals=False, show_smoothed=True, normed=False, normed_occurences=False, bootstrap_std=False, bootsrap_line_width=0.5, exponential_histogram=False, smoothing_range=None, binweights=None):
     # smoothing_range: tuple or list or sequence, eg. (1,100). Use if you only want to smooth and show smoothing over a specific range
     n_bars = float(len(data_list))
     if type(bins) is int:
@@ -355,7 +355,7 @@ def histogram(ax, data_list, bins=10, bin_width_ratio=0.6, colors='green', edgec
     # first get max number of occurences
     max_occur = []
     for i, data in enumerate(data_list):
-        data_hist = np.histogram(data, bins=bins, normed=normed)[0].astype(float)
+        data_hist = np.histogram(data, bins=bins, normed=normed, weights=None)[0].astype(float)
         max_occur.append(np.max(data_hist))
     max_occur = np.max(np.array(max_occur))
         
@@ -366,9 +366,14 @@ def histogram(ax, data_list, bins=10, bin_width_ratio=0.6, colors='green', edgec
         else:
             data_hist = np.histogram(data, bins=bins, normed=normed)[0].astype(float)
             
+        if binweights is not None:
+            data_hist *= binweights[i]
+            if normed:
+                data_hist /= np.sum(binweights[i])
+            
         if exponential_histogram:
             data_hist = np.log(data_hist+1)
-        
+            
         if normed_occurences is not False:
             if normed_occurences == 'total':
                 data_hist /= max_occur 
@@ -445,8 +450,6 @@ def histogram_example():
     ax = fig.add_subplot(111)
     
     histogram(ax, y_data_list, bins=bins, bin_width_ratio=0.8, colors=['green', 'black', 'orange'], edgecolor='none', bar_alpha=1, curve_fill_alpha=0.4, curve_line_alpha=0, curve_butter_filter=[3,0.3], return_vals=False, show_smoothed=True, normed=True, normed_occurences=False, bootstrap_std=False, exponential_histogram=False)
-    
-    
     
     adjust_spines(ax, ['left', 'bottom'])
     
@@ -664,9 +667,9 @@ def colorbar(ax=None, ticks=None, colormap='jet', aspect=20, orientation='vertic
         grad = np.linspace(ticks[0], ticks[-1], 500, endpoint=True)
         im = np.vstack((grad,grad))
         if not flipspine:
-            adjust_spines(ax,['bottom'])
+            adjust_spines(ax,['bottom'], xticks=ticks)
         else:
-            adjust_spines(ax,['top'])
+            adjust_spines(ax,['top'], xticks=ticks)
     
     # vertical
     if orientation == 'vertical':
@@ -676,9 +679,9 @@ def colorbar(ax=None, ticks=None, colormap='jet', aspect=20, orientation='vertic
         grad = np.linspace(ticks[0], ticks[-1], 500, endpoint=True)
         im = np.vstack((grad,grad)).T
         if not flipspine:
-            adjust_spines(ax,['right'])
+            adjust_spines(ax,['right'], yticks=ticks)
         else:
-            adjust_spines(ax,['left'])
+            adjust_spines(ax,['left'], yticks=ticks)
 
     # make image
     cmap = plt.get_cmap(colormap)
@@ -686,7 +689,7 @@ def colorbar(ax=None, ticks=None, colormap='jet', aspect=20, orientation='vertic
                 cmap=cmap,
                 extent=(xlim[0], xlim[-1], ylim[0], ylim[-1]), 
                 origin='lower', 
-                interpolation='nearest')
+                interpolation='bicubic')
                 
     if filename is not None:
         fig.savefig(filename, format='pdf')

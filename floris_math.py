@@ -55,3 +55,34 @@ def remove_angular_rollover(A, max_change_acceptable):
         return array[1]
     else:
         return array
+        
+###
+def fix_angular_rollover(a):   
+    A = copy.copy(a)
+    if type(A) is list or type(A) is np.ndarray or type(A) is np.array:
+        for i, a in enumerate(A):
+            while np.abs(A[i]) > np.pi:
+                A[i] -= np.sign(A[i])*(2*np.pi)
+        return A
+    else:
+        while np.abs(A) > np.pi:
+                A -= np.sign(A)*(2*np.pi)
+        return A
+        
+###
+def dist_point_to_line(pt, linept1, linept2, sign=False):
+    # from wolfram mathworld
+    x1 = linept1[0]
+    x2 = linept2[0]
+    y1 = linept1[1]
+    y2 = linept2[1]
+    x0 = pt[0]
+    y0 = pt[1]
+    
+    if sign:
+        d = -1*((x2-x1)*(y1-y0)-(x1-x0)*(y2-y1) )  / np.sqrt( (x2-x1)**2+(y2-y1)**2)
+    else:
+        d = np.abs( (x2-x1)*(y1-y0)-(x1-x0)*(y2-y1) ) / np.sqrt( (x2-x1)**2+(y2-y1)**2 )
+    
+    return d
+        
