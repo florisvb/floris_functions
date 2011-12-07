@@ -148,9 +148,6 @@ def adjust_spines(ax,spines, spine_locations={}, smart_bounds=True, xticks=None,
                 ticks = xticks
             spine.set_bounds(ticks[0], ticks[-1])
 
-    ax.set_xticks(xticks)
-    ax.set_yticks(yticks)
-
     # turn off ticks where there is no spine
     if 'left' in spines:
         ax.yaxis.set_ticks_position('left')
@@ -167,6 +164,11 @@ def adjust_spines(ax,spines, spine_locations={}, smart_bounds=True, xticks=None,
     else:
         # no xaxis ticks
         ax.xaxis.set_ticks([])    
+    
+    if 'left' in spines or 'right' in spines:
+        ax.set_yticks(yticks)
+    if 'top' in spines or 'bottom' in spines:
+        ax.set_xticks(xticks)
     
     for line in ax.get_xticklines() + ax.get_yticklines():
         #line.set_markersize(6)
