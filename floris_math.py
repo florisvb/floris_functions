@@ -86,3 +86,24 @@ def dist_point_to_line(pt, linept1, linept2, sign=False):
     
     return d
         
+        
+###
+def dist_to_curve(pt, xdata, ydata):
+    
+    #print 'ONLY WORKS WITH VERY HIGH RESOLUTION DATA'
+        
+    curve = np.hstack((xdata, ydata)).reshape(len(xdata),2)
+    ptarr = pt.reshape(1,2)*np.ones_like(curve)
+    
+    # rough:
+    xdist = curve[:,0] - ptarr[:,0]
+    ydist = curve[:,1] - ptarr[:,1]
+    hdist = np.sqrt(xdist**2 + ydist**2)
+    
+    # get sign
+    type1_y = np.interp(pt[0], xdata, ydata)
+    sign = np.sign(type1_y - pt[1])
+    
+    return sign*hdist
+        
+        
