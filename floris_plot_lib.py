@@ -329,6 +329,10 @@ def bootstrap_histogram(xdata, bins, normed=False, n=None, return_raw=False):
     
 def histogram(ax, data_list, bins=10, bin_width_ratio=0.6, colors='green', edgecolor='none', bar_alpha=0.7, curve_fill_alpha=0.4, curve_line_alpha=0.8, curve_butter_filter=[3,0.3], return_vals=False, show_smoothed=True, normed=False, normed_occurences=False, bootstrap_std=False, bootsrap_line_width=0.5, exponential_histogram=False, smoothing_range=None, binweights=None):
     # smoothing_range: tuple or list or sequence, eg. (1,100). Use if you only want to smooth and show smoothing over a specific range
+    
+    if type(bar_alpha) is not list:
+        bar_alpha = [bar_alpha for i in range(len(colors))]
+    
     n_bars = float(len(data_list))
     if type(bins) is int:
     
@@ -389,7 +393,7 @@ def histogram(ax, data_list, bins=10, bin_width_ratio=0.6, colors='green', edgec
                     data_hist_std /= div
                     
         
-        rects = custom_hist_rectangles(data_hist, bins[0:-1]+bar_width*i+bin_width_buff, width=bar_width, facecolor=colors[i], edgecolor=edgecolor, alpha=bar_alpha)
+        rects = custom_hist_rectangles(data_hist, bins[0:-1]+bar_width*i+bin_width_buff, width=bar_width, facecolor=colors[i], edgecolor=edgecolor, alpha=bar_alpha[i])
         if bootstrap_std:
             for j, s in enumerate(data_hist_std):
                 x = bins[j]+bar_width*i+bin_width_buff + bar_width/2.
@@ -427,7 +431,7 @@ def histogram(ax, data_list, bins=10, bin_width_ratio=0.6, colors='green', edgec
                 data_hist_std_list.append(data_hist_std)
             
             if show_smoothed:
-                data_curve_list.append(data_hist_filtered)
+                data_curve_list.append([interped_bin_centers, interped_data_hist_filtered2])
                 
     if return_vals and bootstrap_std is False:
         return bins, data_hist_list, data_curve_list
@@ -579,7 +583,7 @@ def boxplot_classic_example():
 # 2D "heatmap" Histogram
 ###################################################################################################
 
-def histogram2d(ax, x, y, bins=100, normed=False, histrange=None, weights=None, logcolorscale=False, colormap='jet', interpolation='nearest'):
+def histogram2d(ax, x, y, bins=100, normed=False, histrange=None, weights=None, logcolorscale=False, colormap='jet', interpolation='nearest', colornorm=None):
     # the following paramters get passed straight to numpy.histogram2d
     # x, y, bins, normed, histrange, weights
     
@@ -614,10 +618,15 @@ def histogram2d(ax, x, y, bins=100, normed=False, histrange=None, weights=None, 
       samples falling into each bin.
     '''
     
-    hist,x,y = np.histogram2d(x, y, bins, normed=False, range=histrange, weights=weights)
+    hist,x,y = np.histogram2d(x, y, bins, normed=normed, range=histrange, weights=weights)
     
     if logcolorscale:
         hist = np.log(hist+1) # the plus one solves bin=0 issues
+        
+    if colornorm is not None:
+        colornorm = matplotlib.colors.Normalize(colornorm[0], colornorm[1])
+    else:
+        colornorm = matplotlib.colors.Normalize(np.min(np.min(hist)), np.max(np.max(hist)))
     
     # make the heatmap
     cmap = plt.get_cmap(colormap)
@@ -625,7 +634,8 @@ def histogram2d(ax, x, y, bins=100, normed=False, histrange=None, weights=None, 
                 cmap=cmap,
                 extent=(x[0], x[-1], y[0], y[-1]), 
                 origin='lower', 
-                interpolation=interpolation)
+                interpolation=interpolation,
+                norm=colornorm)
                 
 def histogram2d_example():  
 
@@ -652,7 +662,7 @@ def histogram2d_example():
 # Colorbar
 ###################################################################################################
 
-def colorbar(ax=None, ticks=None, colormap='jet', aspect=20, orientation='vertical', filename=None, flipspine=False):
+def colorbar(ax=None, ticks=None, ticklabels=None, colormap='jet', aspect=20, orientation='vertical', filename=None, flipspine=False):
     if ax is None:
         fig = plt.figure()
         ax = fig.add_subplot(111)
@@ -672,6 +682,8 @@ def colorbar(ax=None, ticks=None, colormap='jet', aspect=20, orientation='vertic
             adjust_spines(ax,['bottom'], xticks=ticks)
         else:
             adjust_spines(ax,['top'], xticks=ticks)
+        if ticklabels is not None:
+            ax.set_xticklabels(ticklabels)
     
     # vertical
     if orientation == 'vertical':
@@ -684,6 +696,8 @@ def colorbar(ax=None, ticks=None, colormap='jet', aspect=20, orientation='vertic
             adjust_spines(ax,['right'], yticks=ticks)
         else:
             adjust_spines(ax,['left'], yticks=ticks)
+        if ticklabels is not None:
+            ax.set_yticklabels(ticklabels)
 
     # make image
     cmap = plt.get_cmap(colormap)
