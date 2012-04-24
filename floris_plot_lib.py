@@ -1,12 +1,11 @@
 # written by Floris van Breugel, with some help from Andrew Straw and Will Dickson
+# dependencies for LaTex rendering: texlive, ghostscript, dvipng, texlive-latex-extra
 
 # general imports
 import matplotlib
-print matplotlib.__version__ # recommended to use version >1.0 (for spines)
-
-# recommend using version 1.0.1, not 1.1, and not 0.99.
-# spines don't work in 0.99
-# saving as pdfs has errors in 1.1
+print matplotlib.__version__
+print 'recommended version: 1.1.0'
+# recommend using version 1.1.0
 
 ###################################################################################################
 # Floris' parameters for saving figures. 
