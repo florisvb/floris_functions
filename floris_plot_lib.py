@@ -582,7 +582,7 @@ def boxplot_classic_example():
 # 2D "heatmap" Histogram
 ###################################################################################################
 
-def histogram2d(ax, x, y, bins=100, normed=False, histrange=None, weights=None, logcolorscale=False, colormap='jet', interpolation='nearest', colornorm=None):
+def histogram2d(ax, x, y, bins=100, normed=False, histrange=None, weights=None, logcolorscale=False, colormap='jet', interpolation='nearest', colornorm=None, xextent=None, yextent=None):
     # the following paramters get passed straight to numpy.histogram2d
     # x, y, bins, normed, histrange, weights
     
@@ -626,12 +626,17 @@ def histogram2d(ax, x, y, bins=100, normed=False, histrange=None, weights=None, 
         colornorm = matplotlib.colors.Normalize(colornorm[0], colornorm[1])
     else:
         colornorm = matplotlib.colors.Normalize(np.min(np.min(hist)), np.max(np.max(hist)))
+        
+    if xextent is None:
+        xextent = [x[0], x[-1]]
+    if yextent is None:
+        yextent = [y[0], y[-1]]
     
     # make the heatmap
     cmap = plt.get_cmap(colormap)
     ax.imshow(  hist.T, 
                 cmap=cmap,
-                extent=(x[0], x[-1], y[0], y[-1]), 
+                extent=(xextent[0], xextent[1], yextent[0], yextent[1]), 
                 origin='lower', 
                 interpolation=interpolation,
                 norm=colornorm)
